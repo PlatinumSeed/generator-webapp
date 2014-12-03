@@ -58,9 +58,9 @@ module.exports = function (grunt) {
       gruntfile: {
         files: ['Gruntfile.js']
       },<% if (includeSass) { %>
-      sass: {
-        files: ['<%%= config.app %>/styles/{,*/}*.{scss,sass}'],
-        tasks: ['sass:server', 'autoprefixer']
+      compass: {
+        files: ['<%= config.app %>/styles/{,*/}*.{scss,sass}'],
+        tasks: ['compass:server', 'copy:dev', 'autoprefixer']
       },<% } %>
       styles: {
         files: ['<%%= config.app %>/styles/{,*/}*.css'],
@@ -192,30 +192,30 @@ module.exports = function (grunt) {
     },<% } %><% if (includeSass) { %>
 
     // Compiles Sass to CSS and generates necessary files if requested
-    sass: {
-      options: {<% if (includeLibSass) { %>
-        sourceMap: true,
-        includePaths: ['bower_components']
-        <% } else { %>
-        loadPath: 'bower_components'
-      <% } %>},
+    compass: {
+      options: {
+        sassDir: '<%= config.app %>/styles',
+        cssDir: '.tmp/styles',
+        imagesDir: '<%= config.app %>/images',
+        javascriptsDir: '<%= config.app %>/scripts',
+        fontsDir: '<%= config.app %>/styles/fonts',
+        generatedImagesDir: '.tmp/images/generated',
+        importPath: 'bower_components',
+        httpImagesPath: '../images',
+        httpGeneratedImagesPath: '../images/generated',
+        httpFontsPath: 'fonts',
+        relativeAssets: false,
+        assetCacheBuster: false
+      },
       dist: {
-        files: [{
-          expand: true,
-          cwd: '<%%= config.app %>/styles',
-          src: ['*.{scss,sass}'],
-          dest: '.tmp/styles',
-          ext: '.css'
-        }]
+        options: {
+          generatedImagesDir: '<%= config.dist %>/images/generated'
+        }
       },
       server: {
-        files: [{
-          expand: true,
-          cwd: '<%%= config.app %>/styles',
-          src: ['*.{scss,sass}'],
-          dest: '.tmp/styles',
-          ext: '.css'
-        }]
+        options: {
+          debugInfo: true
+        }
       }
     },<% } %>
 
@@ -363,6 +363,12 @@ module.exports = function (grunt) {
 
     // Copies remaining files to places other tasks can use
     copy: {
+      dev : {
+        files: [
+            // includes files within path
+            {expand: true, flatten: true, src: ['.tmp/styles/{,*/}*.css'], dest: '<%= config.app %>/styles'},
+        ]
+      },
       dist: {
         files: [{
           expand: true,
@@ -424,7 +430,7 @@ module.exports = function (grunt) {
     concurrent: {
       server: [<% if (coffee) {  %>
         'coffee:dist'<% } %><% if (coffee && includeSass) {  %>,<% } %><% if (includeSass) { %>
-        'sass:server'<% } else { %>
+        'compass:server'<% } else { %>
         'copy:styles'<% } %>
       ],
       test: [<% if (coffee) { %>
@@ -433,7 +439,7 @@ module.exports = function (grunt) {
       ],
       dist: [<% if (coffee) { %>
         'coffee',<% } %><% if (includeSass) { %>
-        'sass',<% } else { %>
+        'compass',<% } else { %>
         'copy:styles',<% } %>
         'imagemin',
         'svgmin'
@@ -454,6 +460,7 @@ module.exports = function (grunt) {
       'clean:server',
       'wiredep',
       'concurrent:server',
+      'copy:dev',
       'autoprefixer',
       'connect:livereload',
       'watch'

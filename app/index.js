@@ -130,7 +130,7 @@ module.exports = yeoman.generators.Base.extend({
   },
 
   mainStylesheet: function () {
-    var css = 'main.' + (this.includeSass ? 's' : '') + 'css';
+    var css = 'screen.' + (this.includeSass ? 's' : '') + 'css';
     this.template(css, 'app/styles/' + css);
   },
 
